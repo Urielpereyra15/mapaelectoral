@@ -1,171 +1,389 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Mapa Electoral Argentina</title>
+  <meta charset="utf-8" />
+  <title>Mapa Electoral Argentina - Editable (SVG geográfico)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      display: flex;
-      gap: 30px;
-      margin: 20px;
+    :root{
+      --panel-w: 420px;
+      --neutral: #eeeeee;
     }
-    svg {
-      width: 700px;
-      border: 1px solid #ccc;
-      cursor: pointer;
+    *{box-sizing:border-box}
+    body{
+      margin:16px;
+      font-family: Inter, Roboto, Arial, sans-serif;
+      display:flex;
+      gap:24px;
+      height: calc(100vh - 32px);
+      background: #fafafa;
+      color:#222;
     }
-    path {
-      transition: all 0.3s ease;
+    .map-wrap{
+      width: calc(100% - var(--panel-w) - 48px);
+      min-width: 320px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
     }
-    path:hover {
-      transform: scale(1.02);
-      transform-origin: center;
-      stroke: #000;
-      stroke-width: 2px;
+
+    /* El <object> que carga el SVG */
+    #mapObj{
+      width:100%;
+      max-width:980px;
+      height: auto;
+      border-radius:8px;
+      background: white;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+      border:1px solid #e6e6e6;
     }
-    .seleccionada {
-      stroke: #000;
-      stroke-width: 4px;
-      filter: drop-shadow(2px 2px 6px rgba(0,0,0,0.5));
+
+    /* estilos de panel igual que antes */
+    .panel{
+      width: var(--panel-w);
+      min-width: 300px;
+      background: #fff;
+      border-radius: 10px;
+      padding: 16px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+      display:flex;
+      flex-direction:column;
+      gap:12px;
     }
-    .panel {
-      flex: 1;
-      padding: 10px;
-      border: 1px solid #ccc;
-    }
-    .provincia-titulo {
-      font-size: 20px;
-      margin-bottom: 10px;
-      font-weight: bold;
-    }
-    .partido {
-      margin-bottom: 8px;
-    }
-    .partido button {
-      margin-left: 10px;
-      padding: 3px 6px;
-      border: none;
-      cursor: pointer;
-      border-radius: 4px;
-      color: #fff;
-    }
+    .panel h1{ margin:0; font-size:18px; display:flex; justify-content:space-between; align-items:center;}
+    .small{ font-size:13px; color:#666; }
+    .prov-title{ font-weight:700; font-size:20px; margin-top:4px; }
+    .partidos-list{ display:flex; flex-direction:column; gap:8px; max-height:48vh; overflow:auto; padding-right:6px; }
+    .partido-row{ display:flex; gap:8px; align-items:center; padding:8px; border-radius:8px; background:#fafafa; border:1px solid rgba(0,0,0,0.04); }
+    .partido-row input[type="text"]{ width:120px; padding:6px 8px; border-radius:6px; border:1px solid #ddd; background:white; }
+    .partido-row input[type="number"]{ width:90px; padding:6px 8px; border-radius:6px; border:1px solid #ddd; text-align:right; background:white;}
+    .partido-row input[type="color"]{ width:36px; height:28px; border:none; padding:0; background:transparent; cursor:pointer; }
+    .btn-ghost{ background:transparent; border:1px solid #ddd; padding:8px 10px; border-radius:8px; cursor:pointer; }
+    .btn-primary{ background:#1f6feb; color:white; border:none; padding:8px 10px; border-radius:8px; cursor:pointer; }
+    .summary{ margin-top:8px; padding:8px; border-radius:8px; background:#f7f7f7; border:1px solid rgba(0,0,0,0.03); font-size:14px; }
+    @media (max-width:980px){ body{flex-direction:column;} .map-wrap{width:100%;} .panel{width:100%} }
   </style>
 </head>
 <body>
 
-  <!-- 🗺️ Mapa de Argentina con 24 distritos -->
-  <svg id="mapa" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800">
-    <!-- ⚠️ Cada provincia tiene un id -->
-    <path id="BuenosAires" d="M430,650 L570,650 L570,770 L430,770 Z" stroke="#000" fill="#eee"/>
-    <path id="CABA" d="M460,770 L490,770 L490,790 L460,790 Z" stroke="#000" fill="#eee"/>
-    <path id="Catamarca" d="M200,500 L280,500 L280,580 L200,580 Z" stroke="#000" fill="#eee"/>
-    <path id="Chaco" d="M370,350 L450,350 L450,430 L370,430 Z" stroke="#000" fill="#eee"/>
-    <path id="Chubut" d="M250,650 L350,650 L350,730 L250,730 Z" stroke="#000" fill="#eee"/>
-    <path id="Cordoba" d="M300,500 L380,500 L380,580 L300,580 Z" stroke="#000" fill="#eee"/>
-    <path id="Corrientes" d="M450,400 L520,400 L520,470 L450,470 Z" stroke="#000" fill="#eee"/>
-    <path id="EntreRios" d="M430,500 L500,500 L500,570 L430,570 Z" stroke="#000" fill="#eee"/>
-    <path id="Formosa" d="M430,300 L500,300 L500,370 L430,370 Z" stroke="#000" fill="#eee"/>
-    <path id="Jujuy" d="M200,300 L260,300 L260,340 L200,340 Z" stroke="#000" fill="#eee"/>
-    <path id="LaPampa" d="M300,600 L400,600 L400,670 L300,670 Z" stroke="#000" fill="#eee"/>
-    <path id="LaRioja" d="M220,420 L290,420 L290,480 L220,480 Z" stroke="#000" fill="#eee"/>
-    <path id="Mendoza" d="M180,550 L250,550 L250,630 L180,630 Z" stroke="#000" fill="#eee"/>
-    <path id="Misiones" d="M500,360 L560,360 L560,420 L500,420 Z" stroke="#000" fill="#eee"/>
-    <path id="Neuquen" d="M200,650 L280,650 L280,730 L200,730 Z" stroke="#000" fill="#eee"/>
-    <path id="RioNegro" d="M250,700 L350,700 L350,780 L250,780 Z" stroke="#000" fill="#eee"/>
-    <path id="Salta" d="M220,340 L310,340 L310,410 L220,410 Z" stroke="#000" fill="#eee"/>
-    <path id="SanJuan" d="M180,480 L250,480 L250,540 L180,540 Z" stroke="#000" fill="#eee"/>
-    <path id="SanLuis" d="M260,500 L310,500 L310,560 L260,560 Z" stroke="#000" fill="#eee"/>
-    <path id="SantaCruz" d="M200,750 L350,750 L350,800 L200,800 Z" stroke="#000" fill="#eee"/>
-    <path id="SantaFe" d="M380,450 L450,450 L450,520 L380,520 Z" stroke="#000" fill="#eee"/>
-    <path id="SantiagoDelEstero" d="M310,420 L380,420 L380,480 L310,480 Z" stroke="#000" fill="#eee"/>
-    <path id="TierraDelFuego" d="M100,780 L180,780 L180,800 L100,800 Z" stroke="#000" fill="#eee"/>
-    <path id="Tucuman" d="M260,390 L310,390 L310,430 L260,430 Z" stroke="#000" fill="#eee"/>
-  </svg>
-
-  <!-- 📊 Panel de resultados -->
-  <div class="panel" id="panel">
-    <div class="provincia-titulo">Selecciona una provincia</div>
-    <div id="partidos"></div>
+  <div class="map-wrap">
+    <!-- OBJETO: carga el SVG real desde Wikimedia Commons.
+         Fuente: Map_of_the_Provinces_of_Argentina.svg (Wikimedia Commons). -->
+    <object id="mapObj"
+            data="https://upload.wikimedia.org/wikipedia/commons/6/6f/Map_of_the_Provinces_of_Argentina.svg"
+            type="image/svg+xml" aria-label="Mapa político de Argentina">
+      <!-- Fallback si no se carga el object -->
+      <svg width="640" height="800" viewBox="0 0 640 800">
+        <rect width="100%" height="100%" fill="#fff"></rect>
+        <text x="50%" y="50%" text-anchor="middle" fill="#666">Tu navegador no pudo cargar el mapa remoto.</text>
+      </svg>
+    </object>
   </div>
 
+  <aside class="panel" id="panel">
+    <h1>
+      Mapa Electoral — Editor
+      <div style="font-size:12px;color:#888">SVG geográfico • 24 distritos</div>
+    </h1>
+
+    <div>
+      <div class="small">Provincia seleccionada</div>
+      <div class="prov-title" id="provName">— Haz click en una provincia —</div>
+    </div>
+
+    <div class="summary" id="summaryBox">
+      <div class="small">Indicadores</div>
+      <div id="summaryText">Selecciona una provincia para ver y editar sus partidos.</div>
+    </div>
+
+    <div style="display:flex; gap:8px; align-items:center; justify-content:space-between;">
+      <div class="small">Partidos (máx 5)</div>
+      <div class="small" id="winnerLabel"></div>
+    </div>
+
+    <div class="partidos-list" id="partidosList" aria-live="polite"></div>
+
+    <div class="controls">
+      <div class="left">
+        <button class="btn-ghost" id="addPartidoBtn" title="Agregar partido (máx 5)">➕ Agregar</button>
+        <button class="btn-ghost" id="resetProvBtn" title="Resetear datos de la provincia">🔁 Reset</button>
+      </div>
+      <div class="right">
+        <button class="btn-ghost" id="exportBtn" title="Exportar JSON">⬇️ Exportar</button>
+        <button class="btn-ghost" id="importBtn" title="Importar JSON">⬆️ Importar</button>
+        <button class="btn-primary" id="saveBtn">💾 Guardar</button>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:8px; align-items:center; justify-content:space-between; margin-top:6px;">
+      <div style="font-size:12px;color:#666">Estado: <strong id="stateStatus">Esperando selección</strong></div>
+      <div style="font-size:12px;color:#666">Total provincias: <strong>24</strong></div>
+    </div>
+
+    <input type="file" id="importFile" accept=".json" style="display:none" />
+  </aside>
+
   <script>
-    // Datos: cada provincia con sus 5 partidos (ejemplo genérico, podés personalizar)
-    const provincias = {};
-    const nombres = [
+    /* ------------------------------------------------------------
+       Lógica JS que espera a que el <object> (SVG) cargue, y luego
+       engancha paths por id para habilitar la edición como antes.
+       ------------------------------------------------------------ */
+
+    // IDs de provincias que vamos a manejar (coinciden con los ids del SVG original)
+    const provinciasIds = [
       "BuenosAires","CABA","Catamarca","Chaco","Chubut","Cordoba","Corrientes",
       "EntreRios","Formosa","Jujuy","LaPampa","LaRioja","Mendoza","Misiones",
       "Neuquen","RioNegro","Salta","SanJuan","SanLuis","SantaCruz","SantaFe",
       "SantiagoDelEstero","TierraDelFuego","Tucuman"
     ];
 
-    // Defino 5 partidos de ejemplo para todos (luego podés personalizar por provincia)
+    // Base de partidos (copia para cada provincia)
     const basePartidos = [
-      { nombre: "PJ", color: "#0072bb" },
-      { nombre: "UCR", color: "#ff0000" },
-      { nombre: "PRO", color: "#ffcc00" },
-      { nombre: "LLA", color: "#4b0082" },
-      { nombre: "FIT", color: "#800000" }
+      { nombre: "PJ", color: "#0b77c6", votos: 0 },
+      { nombre: "UCR", color: "#e03b3b", votos: 0 },
+      { nombre: "PRO", color: "#f4c542", votos: 0 },
+      { nombre: "LLA", color: "#6b2da0", votos: 0 },
+      { nombre: "FIT", color: "#6c3b31", votos: 0 }
     ];
 
-    nombres.forEach(p => {
-      provincias[p] = {
-        partidos: JSON.parse(JSON.stringify(basePartidos)), // copia
-        ganador: null
-      };
-    });
+    // build provincias object
+    const provincias = {};
+    provinciasIds.forEach(id => provincias[id] = { partidos: JSON.parse(JSON.stringify(basePartidos)), ganador: null });
 
+    // DOM refs
+    const mapObj = document.getElementById('mapObj');
+    const panelProvName = document.getElementById("provName");
+    const partidosList = document.getElementById("partidosList");
+    const summaryText = document.getElementById("summaryText");
+    const winnerLabel = document.getElementById("winnerLabel");
+    const addPartidoBtn = document.getElementById("addPartidoBtn");
+    const saveBtn = document.getElementById("saveBtn");
+    const resetProvBtn = document.getElementById("resetProvBtn");
+    const exportBtn = document.getElementById("exportBtn");
+    const importBtn = document.getElementById("importBtn");
+    const importFile = document.getElementById("importFile");
+    const stateStatus = document.getElementById("stateStatus");
+
+    let svgDoc = null;          // el documento SVG interno
     let provinciaSeleccionada = null;
+    let svgPathsMap = {};       // id -> element (si se encuentran)
 
-    // Seleccionar provincias en el SVG
-    document.querySelectorAll("svg path").forEach(path => {
-      path.addEventListener("click", () => {
-        if (provinciaSeleccionada) {
-          document.getElementById(provinciaSeleccionada).classList.remove("seleccionada");
-        }
-        provinciaSeleccionada = path.id;
-        path.classList.add("seleccionada");
-        mostrarPartidos(provinciaSeleccionada);
+    // calcular ganador simple: mayor votos (si todos 0 => null)
+    function calcularGanador(prov){
+      const data = provincias[prov];
+      if(!data) return null;
+      let max = -Infinity, idx = null;
+      data.partidos.forEach((p,i)=>{
+        const v = Number(p.votos) || 0;
+        if(v > max){ max = v; idx = i; }
       });
+      if(max === 0) return null;
+      return idx;
+    }
+
+    function actualizarMapa(){
+      if(!svgDoc) return;
+      provinciasIds.forEach(id=>{
+        const el = svgPathsMap[id];
+        const data = provincias[id];
+        if(!el) return;
+        const g = data.ganador;
+        if(g === null || data.partidos.length === 0){
+          el.style.fill = getComputedStyle(document.documentElement).getPropertyValue('--neutral') || '#eee';
+        } else {
+          el.style.fill = data.partidos[g].color;
+        }
+      });
+    }
+
+    function showSummary(prov){
+      const data = provincias[prov];
+      if(!data){ summaryText.innerText = "No hay datos."; winnerLabel.innerText = ""; return; }
+      const total = data.partidos.reduce((s,p)=> s + (Number(p.votos)||0), 0);
+      const ganadorIdx = data.ganador;
+      const ganadorTxt = (ganadorIdx !== null) ? `${data.partidos[ganadorIdx].nombre} (${data.partidos[ganadorIdx].votos} votos)` : "Sin ganador (todos 0)";
+      summaryText.innerHTML = `
+        <div><strong>Total votos registrados:</strong> ${total}</div>
+        <div style="margin-top:6px"><strong>Partidos:</strong> ${data.partidos.map(p => p.nombre).join(", ")}</div>
+      `;
+      winnerLabel.innerText = ganadorTxt;
+    }
+
+    function renderPartidosForm(prov){
+      partidosList.innerHTML = "";
+      const data = provincias[prov];
+      if(!data) return;
+      data.partidos.forEach((p, idx) => {
+        const row = document.createElement("div");
+        row.className = "partido-row";
+        row.dataset.index = idx;
+
+        const inputName = document.createElement("input");
+        inputName.type = "text"; inputName.value = p.nombre;
+        inputName.addEventListener("input", (e)=>{ provincias[prov].partidos[idx].nombre = e.target.value; recomputeAndPaint(prov); });
+
+        const inputColor = document.createElement("input");
+        inputColor.type = "color"; inputColor.value = p.color || "#cccccc";
+        inputColor.addEventListener("input", (e)=>{ provincias[prov].partidos[idx].color = e.target.value; recomputeAndPaint(prov); });
+
+        const inputVotos = document.createElement("input");
+        inputVotos.type = "number"; inputVotos.min = 0; inputVotos.step = 1; inputVotos.value = Number(p.votos) || 0;
+        inputVotos.addEventListener("input", (e)=>{ provincias[prov].partidos[idx].votos = Number(e.target.value) || 0; recomputeAndPaint(prov); });
+
+        const chooseBtn = document.createElement("button");
+        chooseBtn.className = "btn";
+        chooseBtn.style.background = p.color;
+        chooseBtn.innerText = "Elegir";
+        chooseBtn.addEventListener("click", ()=>{
+          const othersMax = data.partidos.reduce((m,part,i)=> i===idx?m:Math.max(m,Number(part.votos)||0), 0);
+          provincias[prov].partidos[idx].votos = othersMax + 1;
+          renderPartidosForm(prov); recomputeAndPaint(prov);
+        });
+
+        const delBtn = document.createElement("button");
+        delBtn.className = "btn";
+        delBtn.style.background = "#d9534f";
+        delBtn.innerText = "Eliminar";
+        delBtn.addEventListener("click", ()=>{
+          if(!confirm(`Eliminar partido "${p.nombre}" de ${prov}?`)) return;
+          provincias[prov].partidos.splice(idx,1);
+          renderPartidosForm(prov); recomputeAndPaint(prov);
+        });
+
+        row.appendChild(inputName);
+        row.appendChild(inputColor);
+        row.appendChild(inputVotos);
+        row.appendChild(chooseBtn);
+        row.appendChild(delBtn);
+        partidosList.appendChild(row);
+      });
+
+      addPartidoBtn.disabled = data.partidos.length >= 5;
+      stateStatus.innerText = "Edición en curso";
+    }
+
+    function recomputeAndPaint(prov){
+      const winnerIdx = calcularGanador(prov);
+      provincias[prov].ganador = winnerIdx;
+      actualizarMapa();
+      showSummary(prov);
+      if(winnerIdx === null) winnerLabel.innerText = "Sin ganador";
+      else {
+        const p = provincias[prov].partidos[winnerIdx];
+        winnerLabel.innerText = `${p.nombre} — ${p.votos} votos`;
+      }
+      scheduleLocalSave();
+    }
+
+    // al cargar el SVG dentro del <object>
+    mapObj.addEventListener('load', ()=>{
+      try {
+        svgDoc = mapObj.contentDocument;
+        // Encontrar paths/areas con ids coincide con nombres de provincias (depende del SVG)
+        // Para robustez buscamos elementos con id en la lista provinciasIds
+        provinciasIds.forEach(id => {
+          const el = svgDoc.getElementById(id) || svgDoc.querySelector(`[id$="${id}"]`);
+          if(el){
+            svgPathsMap[id] = el;
+            // estilos y eventos
+            el.style.transition = "transform 0.18s ease, filter 0.18s ease, stroke-width 0.18s ease";
+            el.style.fill = getComputedStyle(document.documentElement).getPropertyValue('--neutral') || '#eee';
+            el.addEventListener('click', ()=> onProvinceClick(id, el) );
+            el.addEventListener('mouseenter', ()=> el.style.filter = "drop-shadow(0 6px 10px rgba(0,0,0,0.08))" );
+            el.addEventListener('mouseleave', ()=> el.style.filter = "" );
+            // accesibilidad
+            el.tabIndex = 0;
+            el.addEventListener('keydown', e => { if(e.key === 'Enter') onProvinceClick(id, el); });
+            // agregar tooltip interno
+            const t = svgDoc.createElementNS("http://www.w3.org/2000/svg","title");
+            t.textContent = id;
+            el.appendChild(t);
+          }
+        });
+        // pintar con datos actuales (si hubo import/autosave)
+        actualizarMapa();
+        stateStatus.innerText = "Mapa SVG cargado";
+      } catch(err){
+        console.error("No pude acceder al SVG embebido:", err);
+        stateStatus.innerText = "Error cargando SVG embebido";
+      }
     });
 
-    // Mostrar partidos en el panel
-    function mostrarPartidos(provincia) {
-      const panel = document.getElementById("panel");
-      const titulo = panel.querySelector(".provincia-titulo");
-      const partidosDiv = document.getElementById("partidos");
-
-      titulo.innerText = provincia;
-      partidosDiv.innerHTML = "";
-
-      provincias[provincia].partidos.forEach((p, index) => {
-        const div = document.createElement("div");
-        div.className = "partido";
-        div.innerHTML = `${p.nombre} 
-          <button style="background:${p.color}" onclick="seleccionarGanador('${provincia}', ${index})">Elegir</button>`;
-        partidosDiv.appendChild(div);
-      });
-    }
-
-    // Elegir ganador y pintar mapa
-    function seleccionarGanador(provincia, index) {
-      provincias[provincia].ganador = index;
-      actualizarMapa();
-    }
-
-    // Pintar mapa según resultados
-    function actualizarMapa() {
-      for (const provincia in provincias) {
-        const data = provincias[provincia];
-        const elemento = document.getElementById(provincia);
-
-        if (data.ganador !== null) {
-          elemento.style.fill = data.partidos[data.ganador].color;
-        } else {
-          elemento.style.fill = "#eee";
-        }
+    function onProvinceClick(id, element){
+      // quitar seleccion anterior
+      if(provinciaSeleccionada && svgPathsMap[provinciaSeleccionada]){
+        svgPathsMap[provinciaSeleccionada].classList.remove('seleccionada');
+        // reset visual (si querés)
       }
+      provinciaSeleccionada = id;
+      element.classList.add('seleccionada');
+      panelProvName.innerText = provinciaSeleccionada;
+      renderPartidosForm(provinciaSeleccionada);
+      recomputeAndPaint(provinciaSeleccionada);
     }
+
+    // botones
+    addPartidoBtn.addEventListener("click", ()=>{
+      if(!provinciaSeleccionada) return alert("Seleccioná primero una provincia.");
+      const data = provincias[provinciaSeleccionada];
+      if(data.partidos.length >= 5) return alert("Máximo 5 partidos por provincia.");
+      data.partidos.push({ nombre: "Nuevo Partido", color: "#777777", votos: 0 });
+      renderPartidosForm(provinciaSeleccionada); recomputeAndPaint(provinciaSeleccionada);
+    });
+
+    resetProvBtn.addEventListener("click", ()=>{
+      if(!provinciaSeleccionada) return alert("Seleccioná primero una provincia.");
+      if(!confirm(`Resetear datos de ${provinciaSeleccionada} a valores por defecto?`)) return;
+      provincias[provinciaSeleccionada] = { partidos: JSON.parse(JSON.stringify(basePartidos)), ganador: null };
+      renderPartidosForm(provinciaSeleccionada); recomputeAndPaint(provinciaSeleccionada);
+    });
+
+    saveBtn.addEventListener("click", ()=>{
+      if(!provinciaSeleccionada) return alert("Seleccioná primero una provincia.");
+      recomputeAndPaint(provinciaSeleccionada);
+      stateStatus.innerText = "Guardado (en memoria del navegador)";
+      setTimeout(()=> stateStatus.innerText = "Listo", 1400);
+    });
+
+    exportBtn.addEventListener("click", ()=>{
+      const dataStr = JSON.stringify(provincias, null, 2);
+      const blob = new Blob([dataStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a"); a.href = url; a.download = "mapa-resultados.json";
+      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    });
+
+    importBtn.addEventListener("click", ()=> importFile.click());
+    importFile.addEventListener("change", (ev)=>{
+      const f = ev.target.files[0];
+      if(!f) return;
+      const reader = new FileReader();
+      reader.onload = (e)=>{
+        try {
+          const obj = JSON.parse(e.target.result);
+          Object.keys(obj).forEach(k=>{ if(provinciasIds.includes(k)) provincias[k] = obj[k]; });
+          actualizarMapa();
+          if(provinciaSeleccionada){ renderPartidosForm(provinciaSeleccionada); recomputeAndPaint(provinciaSeleccionada); }
+          alert("Importación finalizada.");
+        } catch(err){ alert("Error al importar JSON: " + err.message); }
+      };
+      reader.readAsText(f);
+      importFile.value = "";
+    });
+
+    // autosave simple en localStorage
+    const LS_KEY = "mapa_resultados_autosave_v1";
+    try {
+      const saved = localStorage.getItem(LS_KEY);
+      if(saved){
+        const obj = JSON.parse(saved);
+        Object.keys(obj).forEach(k=>{ if(provinciasIds.includes(k)) provincias[k] = obj[k]; });
+      }
+    } catch(e){}
+    let saveTimer = null;
+    function scheduleLocalSave(){ clearTimeout(saveTimer); saveTimer = setTimeout(()=>{ try{ localStorage.setItem(LS_KEY, JSON.stringify(provincias)); }catch(e){} }, 700); }
+    window.addEventListener("beforeunload", ()=> { try{ localStorage.setItem(LS_KEY, JSON.stringify(provincias)); }catch(e){} });
+
   </script>
 </body>
 </html>
